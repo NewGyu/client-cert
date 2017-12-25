@@ -59,3 +59,30 @@ $ docker-compose run create_server_cert site.kinoboku.net
 * 証明書の期限、サブジェクトは[./server/seed/site.kinoboku.net.json](server/seed/site.kinoboku.net.json) で設定します
 * seedを増やすことでサーバー証明書を増産できます
 * seedのJSONファイル名はサーバーのFQDNを指定します
+
+### nginxで試してみる
+
+```
+$ SERVER=site.kinoboku.net docker-compose up test_nginx
+```
+
+https://localhost:8443
+
+これで試せるが、2つの理由で怒られる。
+
+1. 署名に使ったCAが信頼できない
+2. ドメイン名が証明書のものと違う（localhostだから）
+
+そこでまず、`/etc/hosts` に以下を登録する。
+
+```
+127.0.0.1    site.kinoboku.net
+```
+
+次に`./ca/crt` を信頼できるルート証明書としてブラウザに登録する。
+
+https://site.kinoboku.net:8443
+
+これで、証明書のエラーは出ずに`No required SSL certificate was sent` というNginxの400エラー画面が出る。（クライアント証明書を提示していないため）
+
+クライアント証明書をブラウザに登録することで、`Welcome to nginx!`ページが表示される。
