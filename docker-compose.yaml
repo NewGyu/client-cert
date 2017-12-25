@@ -1,0 +1,37 @@
+version: "3.2"
+services:
+  create_ca_cert:
+    build: .
+    volumes:
+      - "./ca:/ca"
+    working_dir: "/ca"
+    entrypoint: ["ssl_create_ca.sh"]
+  create_client_cert:
+    build: . 
+    volumes:
+      - "./ca:/ca"
+      - "./client/seed:/seed"
+      - "./client/out:/out"
+    entrypoint: ["ssl_create_client.sh"]
+  view_p12:
+    build: .
+    volumes:
+      - "./client/out:/work/out"
+    entrypoint: ["openssl", "pkcs12", "-nodes", "-info", "-passin", "pass:", "-in"]
+  create_server_cert:
+    build: . 
+    volumes:
+      - "./ca:/ca"
+      - "./server/seed:/seed"
+      - "./server/out:/out"
+    entrypoint: ["ssl_create_server.sh"]
+  test_nginx:
+    image: nginx
+    volumes:
+      - "./nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf"
+      - "./server/out/${SERVER}.pem:/etc/ssl/server.pem"
+      - "./server/out/${SERVER}.crt:/etc/ssl/server.crt"
+      - "./ca/ca.crt:/etc/ssl/CA/ca.crt"
+      - "./ca/ca.crl:/etc/ssl/CA/ca.crl"
+    ports:
+      - 8443:443

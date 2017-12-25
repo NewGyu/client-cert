@@ -1,0 +1,3 @@
+printWidth: 128
+tabWidth: 2
+parser: json
